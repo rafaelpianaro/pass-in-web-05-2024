@@ -1,19 +1,36 @@
 import { Search, MoreHorizontal, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
+import dayjs from 'dayjs'
+import 'dayjs/locale/pt-br'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { IconButton } from './icon-button'
 import { Table } from './table/table'
 import { TableHeader } from './table/table-header'
 import { TableCell } from './table/table-cell'
 import { TableRow } from './table/table-row'
+import { ChangeEvent, useState } from 'react'
+import { attendees } from '../data/attendees'
+
+dayjs.extend(relativeTime)
+dayjs.locale('pt-br')
 
 export function AttendeeList() {
+    const [search, setSearch] = useState('')
+    const [page, setPage] = useState(1)
+
+    function onSearchInputChanged(event: ChangeEvent<HTMLInputElement>) {
+        setSearch(event.target.value)
+    }
+
     return (
         <div className='flex flex-col gap-4'>
             <div className="flex gap-3 items-center">
                 <h1 className="text-2xl font-bold">Participantes</h1>
                 <div className="px-3 py-1.5 w-72 border border-white/10 rounded-lg text-sm flex items-center gap-3">
                     <Search className='size-4 text-orange-300'/>
-                    <input className="bg-transparent flex-1 border-0 p-0 text-sm focus:outline-none focus:ring-0" placeholder="Buscar participantes..." type="text" />
+                    {/* event listener -> onChange */}
+                    <input onChange={onSearchInputChanged} className="bg-transparent flex-1 border-0 p-0 text-sm focus:outline-none focus:ring-0" placeholder="Buscar participantes..." type="text" />
                 </div>
+            {search}
             </div>
 
             <Table>
@@ -32,21 +49,21 @@ export function AttendeeList() {
                     </tr>
                 </thead>
                 <tbody>
-                    {Array.from({ length: 10}).map((_, i) => {
+                    {attendees.slice((page - 1) * 10, page * 10).map((attendee) => {
                         return (
-                        <TableRow key={i} >
+                        <TableRow key={attendee.id} >
                             <TableCell>
                                 <input type="checkbox" className="form-checkbox h-4 w-4 text-orange-400 bg-black/20 rounded border border-white/10 focus:border-orange-400 focus:ring-orange-400 focus:ring-0 checked:border-orange-400" />
                             </TableCell>
-                            <TableCell>123456</TableCell>
+                            <TableCell>{attendee.id}</TableCell>
                             <TableCell>
                                 <div className='flex flex-col gap-1'>
-                                    <span className='font-semibold text-white'>Maria Tcha Tcha Tcha</span>
-                                    <span>maria@mail.com</span>
+                                    <span className='font-semibold text-white'>{attendee.name}</span>
+                                    <span>{attendee.email}</span>
                                 </div>
                             </TableCell>
-                            <TableCell>7 dias atrás</TableCell>
-                            <TableCell>4 dias atrás</TableCell>
+                            <TableCell>{dayjs().to(attendee.createdAt)}</TableCell>
+                            <TableCell>{dayjs().to(attendee.checkedInAt)}</TableCell>
                             <TableCell>
                                 <IconButton transparent>
                                     <MoreHorizontal className='size-4' />
@@ -59,12 +76,12 @@ export function AttendeeList() {
                 <tfoot>
                     <tr>
                         <TableCell colSpan={3}>
-                            Mostrando 10 de 228 itens
+                            Mostrando 10 de {attendees.length} itens
                         </TableCell>
                         <TableCell className='text-right' colSpan={3}>
                             <div className='inline-flex items-center gap-8'>
 
-                                <span>Página 1 de 23</span>
+                                <span>Página {page} de {Math.ceil(attendees.length / 10)}</span>
 
                                 <div className='flex gap-1.5'>
                                     <IconButton>
